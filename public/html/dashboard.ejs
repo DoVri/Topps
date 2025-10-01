@@ -62,6 +62,16 @@
                 color: #FFEB3B !important;
                 text-shadow: 0 0 2px #000;
             }
+
+            /* Tambahan biar dashboard rapih */
+            #dashboardBox {
+                padding: 20px;
+                background: rgba(0, 0, 0, 0.4);
+                border-radius: 10px;
+                color: white;
+                text-align: center;
+                margin-top: 20px;
+            }
         </style>
     </head>
     <body style="background-color: rgba(0, 0, 0, 0)">
@@ -101,9 +111,7 @@
                                                             >
                                                                 <h2>
                                                                     Login to MazdaPS
-                                            
                                                                 </h2>
-
                                                             </div>
                                                             <div
                                                                 class="row div-content-center"
@@ -117,6 +125,7 @@
                                                                         accept-charset="UTF-8"
                                                                         class=""
                                                                         role="form"
+                                                                        id="loginForm"
                                                                         required="required"
                                                                         autocomplete="off"
                                                                     >
@@ -125,22 +134,18 @@
                                                                             type="hidden"
                                                                             value="[object Object]"
                                                                         />
-<div
-                                                                            class="form-group"
-                                                                        >
+                                                                        <div class="form-group">
                                                                             <input
-                                                                                id="login-name"
+                                                                                id="loginGrowId"
                                                                                 class="form-control grow-text"
                                                                                 placeholder="Your GrowID Name *"
                                                                                 name="growId"
                                                                                 type="text"
                                                                             />
                                                                         </div>
-                                                                        <div
-                                                                            class="form-group"
-                                                                        >
+                                                                        <div class="form-group">
                                                                             <input
-                                                                                id="password"
+                                                                                id="loginPassword"
                                                                                 class="form-control grow-text"
                                                                                 placeholder="Your GrowID Password *"
                                                                                 name="password"
@@ -148,35 +153,78 @@
                                                                                 value=""
                                                                             />
                                                                         </div>
-                                                                        
                                                                         <div
-                                                                            class="form-group text-center"
+                                                                            id="errorDiv"
+                                                                            class="alert alert-danger hidden"
                                                                         >
-                                                                       <input
+                                                                            <span
+                                                                                id="errorMessage"
+                                                                            ></span>
+                                                                        </div>
+                                                                        <div class="form-group text-center">
+                                                                            <input
+                                                                                id="loginButton"
                                                                                 class="btn btn-lg btn-primary grow-button"
-                                                        type="submit"
+                                                                                type="submit"
                                                                                 value="Login"
                                                                             />
                                                                         </div>
-                                                                                                   <div
-                                                                            class="form-group text-center"
-                                                                        >
-                                                                        </div>                                     </form>
-                                                                        <form
+                                                                    </form>
+                                                                    <form
                                                                         method="POST"
                                                                         action="/player/growid/login/validate"
                                                                         accept-charset="UTF-8"
                                                                         class=""
-                                                                        role="form">
-<input name="_token" type="hidden" value=""/> <input name="growId" type="hidden" value=""/> <input name="password" type="hidden" value=""/>
-<input
-                                                                                class="btn btn-lg btn-primary grow-button"
-                                                        type="submit"
-                                                                                value="Don't have any MazdaPS? Register here!"
-                                                                            />
-</form>
-                      
-                                                        </div>
+                                                                        role="form"
+                                                                    >
+                                                                        <input
+                                                                            name="_token"
+                                                                            type="hidden"
+                                                                            value=""
+                                                                        />
+                                                                        <input
+                                                                            name="growId"
+                                                                            type="hidden"
+                                                                            value=""
+                                                                        />
+                                                                        <input
+                                                                            name="password"
+                                                                            type="hidden"
+                                                                            value=""
+                                                                        />
+                                                                        <input
+                                                                            class="btn btn-lg btn-primary grow-button"
+                                                                            type="submit"
+                                                                            value="Don't have any MazdaPS? Register here!"
+                                                                        />
+                                                                    </form>
+
+                                                                    <!-- DASHBOARD SECTION -->
+                                                                    <div
+                                                                        id="dashboardBox"
+                                                                        class="hidden"
+                                                                    >
+                                                                        <h3>
+                                                                            Welcome,
+                                                                            <span
+                                                                                id="displayGrowId"
+                                                                            ></span>
+                                                                            👋
+                                                                        </h3>
+                                                                        <p>
+                                                                            You are
+                                                                            logged in
+                                                                            successfully
+                                                                        </p>
+                                                                        <button
+                                                                            id="logoutButton"
+                                                                            class="btn btn-danger"
+                                                                        >
+                                                                            Logout
+                                                                        </button>
+                                                                    </div>
+                                                                    <!-- END DASHBOARD -->
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </section>
@@ -193,7 +241,6 @@
         </div>
     </body>
     <script src="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/vendors/jquery/jquery-2.1.4.min.js"></script>
-    
     <script src="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/vendors/bootstrap/javascripts/bootstrap.min.js"></script>
     <script>
         let clicked = false;
@@ -206,34 +253,15 @@
         });
         $('document').ready(function () {
             document.onkeydown = e => {
-                if (e.key == 123) {
+                if (e.key == 123 || e.key == 'F12') e.preventDefault();
+                if (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key))
                     e.preventDefault();
-                }
-                if (e.key == 'F12') {
-                    e.preventDefault();
-                }
-                if (e.ctrlKey && e.shiftKey && e.key == 'I') {
-                    e.preventDefault();
-                }
-                if (e.ctrlKey && e.key == 'I') {
-                    e.preventDefault();
-                }
-                if (e.ctrlKey && e.shiftKey && e.key == 'C') {
-                    e.preventDefault();
-                }
-                if (e.ctrlKey && e.shiftKey && e.key == 'J') {
-                    e.preventDefault();
-                }
-                if (e.ctrlKey && e.key == 'U') {
-                    e.preventDefault();
-                }
+                if (e.ctrlKey && e.key == 'U') e.preventDefault();
             };
             $('#modalButton').trigger('click');
             $('.close').on('click', function () {
-                window.location = // change the host into your own backend host
-                    '/player/validate/close'; // https instead of http if u r using ssl
+                window.location = '/player/validate/close';
             });
-            // $('form').submit($('form .grow-button').attr('disabled', 'true'));
             var observer = new MutationObserver(function (mutations) {
                 mutations.forEach(function (mutation) {
                     for (var i = 0; i < mutation.addedNodes.length; i++) {
@@ -261,45 +289,67 @@
         });
     </script>
     <script>
+        // LOGIN FIX
         document.addEventListener('DOMContentLoaded', function () {
-            if (localStorage.getItem('growId')) {
-                document.getElementById('loginGrowId').value = localStorage.getItem('growId');
+            const savedGrowId = localStorage.getItem('growId');
+
+            // Kalau sudah ada growId tersimpan → langsung ke dashboard
+            if (savedGrowId) {
+                document.getElementById('loginForm').classList.add('hidden');
+                document
+                    .getElementById('dashboardBox')
+                    .classList.remove('hidden');
+                document.getElementById('displayGrowId').innerText = savedGrowId;
             }
 
-            const loginGrowId = document.getElementById('loginGrowId').value
-            const loginPassword = document.getElementById('loginPassword').value
-        });
-        document.getElementById('loginButton').addEventListener('click', function (event) {
-            event.preventDefault();
+            const loginButton = document.getElementById('loginButton');
+            if (loginButton) {
+                loginButton.addEventListener('click', function (event) {
+                    event.preventDefault();
 
-            const loginForm = document.getElementById('loginForm');
-            const uName = document.getElementById('loginGrowId').value;
-            const uPass = document.getElementById('loginPassword').value;
+                    const uName =
+                        document.getElementById('loginGrowId').value.trim();
+                    const uPass =
+                        document.getElementById('loginPassword').value.trim();
 
-            if (!uName || !uPass) {
-                document.getElementById('errorDiv').classList.remove('hidden');
-                document.getElementById('errorMessage').innerHTML = 'Username or Password is empty';
-                return;
-            } else if (uName.length < 4 || uPass.length < 4) {
-                document.getElementById('errorDiv').classList.remove('hidden');
-                document.getElementById('errorMessage').innerHTML = 'Username or Password must be at least 4 characters long';
-                return;
-            } else {
-                loginForm.submit();
-                localStorage.setItem('growId', document.getElementById('loginGrowId').value);
+                    if (!uName || !uPass) {
+                        document
+                            .getElementById('errorDiv')
+                            .classList.remove('hidden');
+                        document.getElementById('errorMessage').innerText =
+                            'Username or Password is empty';
+                        return;
+                    } else if (uName.length < 4 || uPass.length < 4) {
+                        document
+                            .getElementById('errorDiv')
+                            .classList.remove('hidden');
+                        document.getElementById('errorMessage').innerText =
+                            'Username or Password must be at least 4 characters long';
+                        return;
+                    }
+
+                    // Simpan ke localStorage
+                    localStorage.setItem('growId', uName);
+
+                    // Tampilkan dashboard
+                    document
+                        .getElementById('loginForm')
+                        .classList.add('hidden');
+                    document
+                        .getElementById('dashboardBox')
+                        .classList.remove('hidden');
+                    document.getElementById('displayGrowId').innerText = uName;
+                });
             }
-        })
-        document.getElementById('toggleLogPassword').addEventListener('click', function () {
-            const LpasswordField = document.getElementById('loginPassword')
-            const LpasswordFieldType = LpasswordField.getAttribute('type');
-            if (LpasswordFieldType === 'password') {
-                LpasswordField.setAttribute('type', 'text');
-                this.innerHTML = '<i class="fas fa-eye-slash"></i>';
-            } else {
-                LpasswordField.setAttribute('type', 'password');
-                this.innerHTML = '<i class="fas fa-eye"></i>';
+
+            // Tombol logout
+            const logoutButton = document.getElementById('logoutButton');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', function () {
+                    localStorage.removeItem('growId');
+                    location.reload();
+                });
             }
         });
     </script>
-</body>
 </html>
