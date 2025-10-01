@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html
     lang="en"
@@ -53,124 +52,134 @@
             .content {
                 padding: 0;
             }
+            .hidden {
+                display: none !important;
+            }
+            #alreadyLoggedIn {
+                padding: 50px 20px;
+                text-align: center;
+                color: white;
+                font-family: Arial, sans-serif;
+            }
         </style>
     </head>
     <body style="background-color: rgba(0, 0, 0, 0)">
-        <button
-            type="button"
-            class="btn btn-primary hidden"
-            data-toggle="modal"
-            id="modalButton"
-            data-target="#modalShow"
-            data-backdrop="static"
-            data-keyboard="false"
-        ></button>
-        <div class="content">
-            <section class="common-box">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-md-12 col-sm-12">
-                            <div class="row">
-                                <div
-                                    class="modal fade product-list-popup"
-                                    id="modalShow"
-                                    tabindex="-1"
-                                    role="dialog"
-                                    aria-hidden="false"
-                                >
+        <% if (isLoggedIn) { %>
+            <div id="alreadyLoggedIn">
+                <h2>Welcome back, <strong><%= growId %></strong>!</h2>
+                <p>You are already logged in.</p>
+                <!-- Optional: <a href="/player/logout" class="btn btn-danger">Logout</a> -->
+            </div>
+        <% } else { %>
+            <button
+                type="button"
+                class="btn btn-primary hidden"
+                data-toggle="modal"
+                id="modalButton"
+                data-target="#modalShow"
+                data-backdrop="static"
+                data-keyboard="false"
+            ></button>
+            <div class="content">
+                <section class="common-box">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12 col-sm-12">
+                                <div class="row">
                                     <div
-                                        class="modal-dialog modal-dialog-centered"
-                                        role="document"
+                                        class="modal fade product-list-popup"
+                                        id="modalShow"
+                                        tabindex="-1"
+                                        role="dialog"
+                                        aria-hidden="false"
                                     >
-                                        <div class="modal-content">
-                                            <div class="modal-body">
-                                                <div class="content">
-                                                    <section class="common-box">
-                                                        <div class="container">
-                                                            <div
-                                                                class="section-title center-align"
-                                                            >
-                                                                <h2>
-                                                                    Log Into
-                                                                 Your GTPSID
-                                                                </h2>
-
-                                                            </div>
-                                                            <div
-                                                                class="row div-content-center"
-                                                            >
+                                        <div
+                                            class="modal-dialog modal-dialog-centered"
+                                            role="document"
+                                        >
+                                            <div class="modal-content">
+                                                <div class="modal-body">
+                                                    <div class="content">
+                                                        <section class="common-box">
+                                                            <div class="container">
                                                                 <div
-                                                                    class="col-md-12 col-sm-12"
+                                                                    class="section-title center-align"
                                                                 >
-                                                                    <form
-                                                                        method="POST"
-                                                                        action="/player/growid/login/validate"
-                                                                        accept-charset="UTF-8"
-                                                                        class=""
-                                                                        role="form"
-                                                                        required="required"
-                                                                        autocomplete="off"
+                                                                    <h2>
+                                                                        Log Into Your GTPSID
+                                                                    </h2>
+                                                                </div>
+                                                                <div
+                                                                    class="row div-content-center"
+                                                                >
+                                                                    <div
+                                                                        class="col-md-12 col-sm-12"
                                                                     >
-                                                                        <input
-                                                                            name="_token"
-                                                                            type="hidden"
-                                                                            value="[object Object]"
-                                                                        />
-<div
-                                                                            class="form-group"
-                                                                        >
-                                                                            <input
-                                                                                id="login-name"
-                                                                                class="form-control grow-text"
-                                                                                placeholder="Your GrowID Name *"
-                                                                                name="growId"
-                                                                                type="text"
-                                                                            />
-                                                                        </div>
-                                                                        <div
-                                                                            class="form-group"
-                                                                        >
-                                                                            <input
-                                                                                id="password"
-                                                                                class="form-control grow-text"
-                                                                                placeholder="Your GrowID Password *"
-                                                                                name="password"
-                                                                                type="password"
-                                                                                value=""
-                                                                            />
-                                                                        </div>
-                                                                        
-                                                                        <div
-                                                                            class="form-group text-center"
-                                                                        >
-                                                                       <input
-                                                                                class="btn btn-lg btn-primary grow-button"
-                                                        type="submit"
-                                                                                value="Login"
-                                                                            />
-                                                                        </div>
-                                                                                                   <div
-                                                                            class="form-group text-center"
-                                                                        >
-                                                                        </div>                                     </form>
                                                                         <form
-                                                                        method="POST"
-                                                                        action="/player/growid/login/validate"
-                                                                        accept-charset="UTF-8"
-                                                                        class=""
-                                                                        role="form">
-<input name="_token" type="hidden" value=""/> <input name="growId" type="hidden" value=""/> <input name="password" type="hidden" value=""/>
-<input
+                                                                            id="loginForm"
+                                                                            method="POST"
+                                                                            action="/player/growid/login/validate"
+                                                                            accept-charset="UTF-8"
+                                                                            class=""
+                                                                            role="form"
+                                                                            required="required"
+                                                                            autocomplete="off"
+                                                                        >
+                                                                            <input
+                                                                                name="_token"
+                                                                                type="hidden"
+                                                                                value="[object Object]"
+                                                                            />
+                                                                            <div class="form-group">
+                                                                                <input
+                                                                                    id="login-name"
+                                                                                    class="form-control grow-text"
+                                                                                    placeholder="Your GrowID Name *"
+                                                                                    name="growId"
+                                                                                    type="text"
+                                                                                    value="<%= growId %>"
+                                                                                />
+                                                                            </div>
+                                                                            <div class="form-group">
+                                                                                <input
+                                                                                    id="password"
+                                                                                    class="form-control grow-text"
+                                                                                    placeholder="Your GrowID Password *"
+                                                                                    name="password"
+                                                                                    type="password"
+                                                                                    value=""
+                                                                                />
+                                                                            </div>
+                                                                            <div class="form-group text-center">
+                                                                                <input
+                                                                                    id="loginButton"
+                                                                                    class="btn btn-lg btn-primary grow-button"
+                                                                                    type="submit"
+                                                                                    value="Login"
+                                                                                />
+                                                                            </div>
+                                                                        </form>
+                                                                        <form
+                                                                            method="POST"
+                                                                            action="/player/growid/login/validate"
+                                                                            accept-charset="UTF-8"
+                                                                            class=""
+                                                                            role="form"
+                                                                        >
+                                                                            <input name="_token" type="hidden" value="" />
+                                                                            <input name="growId" type="hidden" value="" />
+                                                                            <input name="password" type="hidden" value="" />
+                                                                            <input
                                                                                 class="btn btn-lg btn-primary grow-button"
-                                                        type="submit"
+                                                                                type="submit"
                                                                                 value="Don't have any GTPSID? Register here!"
                                                                             />
-</form>
-                      
-                                                        </div>
+                                                                        </form>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </section>
+                                                        </section>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -179,118 +188,111 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
-        </div>
-    </body>
-    <script src="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/vendors/jquery/jquery-2.1.4.min.js"></script>
-    
-    <script src="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/vendors/bootstrap/javascripts/bootstrap.min.js"></script>
-    <script>
-        let clicked = false;
-        $('a').click(function () {
-            if (clicked === false) {
-                clicked = true;
-                return true;
-            }
-            $(this).attr('onclick', 'return false;');
-        });
-        $('document').ready(function () {
-            document.onkeydown = e => {
-                if (e.key == 123) {
-                    e.preventDefault();
+                </section>
+            </div>
+        <% } %>
+
+        <script src="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/vendors/jquery/jquery-2.1.4.min.js"></script>
+        <script src="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/vendors/bootstrap/javascripts/bootstrap.min.js"></script>
+        <script>
+            let clicked = false;
+            $('a').click(function () {
+                if (clicked === false) {
+                    clicked = true;
+                    return true;
                 }
-                if (e.key == 'F12') {
-                    e.preventDefault();
-                }
-                if (e.ctrlKey && e.shiftKey && e.key == 'I') {
-                    e.preventDefault();
-                }
-                if (e.ctrlKey && e.key == 'I') {
-                    e.preventDefault();
-                }
-                if (e.ctrlKey && e.shiftKey && e.key == 'C') {
-                    e.preventDefault();
-                }
-                if (e.ctrlKey && e.shiftKey && e.key == 'J') {
-                    e.preventDefault();
-                }
-                if (e.ctrlKey && e.key == 'U') {
-                    e.preventDefault();
-                }
-            };
-            $('#modalButton').trigger('click');
-            $('.close').on('click', function () {
-                window.location = // change the host into your own backend host
-                    '/player/validate/close'; // https instead of http if u r using ssl
+                $(this).attr('onclick', 'return false;');
             });
-            // $('form').submit($('form .grow-button').attr('disabled', 'true'));
-            var observer = new MutationObserver(function (mutations) {
-                mutations.forEach(function (mutation) {
-                    for (var i = 0; i < mutation.addedNodes.length; i++) {
-                        if (mutation.addedNodes[i].tagName == 'DIV') {
-                            var thediv = mutation.addedNodes[i];
-                            var sw = window.screen.width;
-                            if (sw < 667) {
-                                $(thediv).css({
-                                    transform: 'scale(0.75)',
-                                    'transform-origin': '0 0',
-                                    '-webkit-transform': 'scale(0.75)',
-                                    '-webkit-transform-origin': '0 0',
-                                    overflow: 'auto',
-                                });
+
+            $(document).ready(function () {
+                document.onkeydown = e => {
+                    if (e.key == 123) {
+                        e.preventDefault();
+                    }
+                    if (e.key == 'F12') {
+                        e.preventDefault();
+                    }
+                    if (e.ctrlKey && e.shiftKey && e.key == 'I') {
+                        e.preventDefault();
+                    }
+                    if (e.ctrlKey && e.key == 'I') {
+                        e.preventDefault();
+                    }
+                    if (e.ctrlKey && e.shiftKey && e.key == 'C') {
+                        e.preventDefault();
+                    }
+                    if (e.ctrlKey && e.shiftKey && e.key == 'J') {
+                        e.preventDefault();
+                    }
+                    if (e.ctrlKey && e.key == 'U') {
+                        e.preventDefault();
+                    }
+                };
+
+                <% if (!isLoggedIn) { %>
+                    $('#modalButton').trigger('click');
+                <% } %>
+
+                $('.close').on('click', function () {
+                    window.location = '/player/validate/close';
+                });
+
+                var observer = new MutationObserver(function (mutations) {
+                    mutations.forEach(function (mutation) {
+                        for (var i = 0; i < mutation.addedNodes.length; i++) {
+                            if (mutation.addedNodes[i].tagName == 'DIV') {
+                                var thediv = mutation.addedNodes[i];
+                                var sw = window.screen.width;
+                                if (sw < 667) {
+                                    $(thediv).css({
+                                        transform: 'scale(0.75)',
+                                        'transform-origin': '0 0',
+                                        '-webkit-transform': 'scale(0.75)',
+                                        '-webkit-transform-origin': '0 0',
+                                        overflow: 'auto',
+                                    });
+                                }
                             }
                         }
-                    }
+                    });
+                });
+                observer.observe(document.body, {
+                    attributes: false,
+                    childList: true,
+                    characterData: false,
                 });
             });
-            observer.observe(document.body, {
-                attributes: false,
-                childList: true,
-                characterData: false,
-            });
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            if (localStorage.getItem('growId')) {
-                document.getElementById('loginGrowId').value = localStorage.getItem('growId');
-            }
+        </script>
 
-            const loginGrowId = document.getElementById('loginGrowId').value
-            const loginPassword = document.getElementById('loginPassword').value
-        });
-        document.getElementById('loginButton').addEventListener('click', function (event) {
-            event.preventDefault();
+        <% if (!isLoggedIn) { %>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    // Isi dari localStorage jika ada
+                    if (localStorage.getItem('growId')) {
+                        document.getElementById('login-name').value = localStorage.getItem('growId');
+                    }
+                });
 
-            const loginForm = document.getElementById('loginForm');
-            const uName = document.getElementById('loginGrowId').value;
-            const uPass = document.getElementById('loginPassword').value;
+                document.getElementById('loginButton').addEventListener('click', function (event) {
+                    event.preventDefault();
 
-            if (!uName || !uPass) {
-                document.getElementById('errorDiv').classList.remove('hidden');
-                document.getElementById('errorMessage').innerHTML = 'Username or Password is empty';
-                return;
-            } else if (uName.length < 4 || uPass.length < 4) {
-                document.getElementById('errorDiv').classList.remove('hidden');
-                document.getElementById('errorMessage').innerHTML = 'Username or Password must be at least 4 characters long';
-                return;
-            } else {
-                loginForm.submit();
-                localStorage.setItem('growId', document.getElementById('loginGrowId').value);
-            }
-        })
-        document.getElementById('toggleLogPassword').addEventListener('click', function () {
-            const LpasswordField = document.getElementById('loginPassword')
-            const LpasswordFieldType = LpasswordField.getAttribute('type');
-            if (LpasswordFieldType === 'password') {
-                LpasswordField.setAttribute('type', 'text');
-                this.innerHTML = '<i class="fas fa-eye-slash"></i>';
-            } else {
-                LpasswordField.setAttribute('type', 'password');
-                this.innerHTML = '<i class="fas fa-eye"></i>';
-            }
-        });
-    </script>
-</body>
+                    const uName = document.getElementById('login-name').value;
+                    const uPass = document.getElementById('password').value;
+
+                    if (!uName || !uPass) {
+                        // Tidak ada errorDiv di HTML asli, jadi kita skip validasi frontend
+                        // Biarkan backend handle
+                    } else if (uName.length < 4 || uPass.length < 4) {
+                        // Sama seperti di atas
+                    }
+
+                    // Simpan ke localStorage
+                    localStorage.setItem('growId', uName);
+
+                    // Submit form
+                    document.getElementById('loginForm').submit();
+                });
+            </script>
+        <% } %>
+    </body>
 </html>
