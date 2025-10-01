@@ -1,67 +1,87 @@
 const express = require('express');
-const app = express();
+const session = require('express-session');
 const bodyParser = require('body-parser');
 const rateLimiter = require('express-rate-limit');
 const compression = require('compression');
+const path = require('path');
 
-app.use(compression({
-    level: 5,
-    threshold: 0,
-    filter: (req, res) => {
-        if (req.headers['x-no-compression']) {
-            return false;
-        }
-        return compression.filter(req, res);
-    }
-}));
-app.set('view engine', 'ejs');
-app.set('trust proxy', 1);
-app.use(function (req, res, next) {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header(
-        'Access-Control-Allow-Headers',
-        'Origin, X-Requested-With, Content-Type, Accept',
-    );
-    console.log(`[${new Date().toLocaleString()}] ${req.method} ${req.url} - ${res.statusCode}`);
-    next();
-});
+const app = express();
+
+// === Middleware ===
+app.use(compression());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
+
 app.use(rateLimiter({ windowMs: 15 * 60 * 1000, max: 100, headers: true }));
 
-app.all('/player/login/dashboard', function (req, res) {
-    const tData = {};
-    try {
-        const uData = JSON.stringify(req.body).split('"')[1].split('\\n'); const uName = uData[0].split('|'); const uPass = uData[1].split('|');
-        for (let i = 0; i < uData.length - 1; i++) { const d = uData[i].split('|'); tData[d[0]] = d[1]; }
-        if (uName[1] && uPass[1]) { res.redirect('/player/growid/login/validate'); }
-    } catch (why) { console.log(`Warning: ${why}`); }
+// session login
+app.use(session({
+    secret: 'mazdaps-secret-key',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 1 hari
+}));
 
-    res.render(__dirname + '/public/html/dashboard.ejs', { data: tData });
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'public/html'));
+
+// === Middleware logging ===
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    console.log(`[${new Date().toLocaleString()}] ${req.method} ${req.url}`);
+    next();
 });
 
-app.all('/player/growid/login/validate', (req, res) => {
-    const _token = req.body._token;
-    const growId = req.body.growId;
-    const password = req.body.password;
-
-    const token = Buffer.from(
-        `_token=${_token}&growId=${growId}&password=${password}`,
-    ).toString('base64');
-
-    res.send(
-        `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia"}`,
-    );
+// === Login Dashboard ===
+app.all('/player/login/dashboard', (req, res) => {
+    if (req.session.user) {
+        // sudah login, langsung render dashboard
+        return res.render('dashboard.ejs', { data: req.session.user });
+    }
+    res.render('dashboard.ejs', { data: {} });
 });
 
-app.all('/player/*', function (req, res) {
-    res.status(301).redirect('https://api.yoruakio.tech/player/' + req.path.slice(8));
+// === Validate Login ===
+app.post('/player/growid/login/validate', (req, res) => {
+    const { _token, growId, password } = req.body;
+
+    if (!growId || !password) {
+        return res.status(400).json({ status: 'error', message: 'Missing credentials' });
+    }
+
+    // Simulasi validasi user (kamu bisa ganti dengan DB)
+    if (growId.length >= 4 && password.length >= 4) {
+        req.session.user = { growId, _token };
+        const token = Buffer.from(`_token=${_token}&growId=${growId}&password=${password}`).toString('base64');
+        return res.json({
+            status: 'success',
+            message: 'Account Validated.',
+            token,
+            url: '/player/login/dashboard',
+            accountType: 'growtopia'
+        });
+    }
+
+    return res.status(401).json({ status: 'error', message: 'Invalid login' });
 });
 
-app.get('/', function (req, res) {
-    res.send('Hello World!');
+// === Logout ===
+app.get('/player/logout', (req, res) => {
+    req.session.destroy(() => {
+        res.redirect('/player/login/dashboard');
+    });
 });
 
-app.listen(5000, function () {
-    console.log('Listening on port 5000');
+// === Proxy Redirect untuk selain login ===
+app.all('/player/*', (req, res) => {
+    res.redirect('https://api.yoruakio.tech/player/' + req.path.slice(8));
 });
+
+// === Root ===
+app.get('/', (req, res) => {
+    res.send('Hello World! MazdaPS Backend is running');
+});
+
+// === Export agar bisa jalan di Vercel ===
+module.exports = app;
