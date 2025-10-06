@@ -100,7 +100,7 @@ app.all('/player/growid/checktoken', (req, res) => {
 
 // Root
 app.get('/', function (req, res) {
-  res.send('Hello World!');
+  res.send('Welcome to MazdaPS!');
 });
 
 // Start server
