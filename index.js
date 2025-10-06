@@ -65,24 +65,17 @@ app.all('/player/login/dashboard', function (req, res) {
 
 // Validasi login → generate token + accountAge: 2
 app.all('/player/growid/login/validate', (req, res) => {
-  const _token = req.body._token;
-  const growId = req.body.growId;
-  const password = req.body.password;
+    const _token = req.body._token;
+    const growId = req.body.growId;
+    const password = req.body.password;
 
-  // Email diabaikan karena tidak dipakai di checkToken versi kedua
-  const tokenData = `_token=${_token}&growId=${growId}&password=${password}`;
-  const token = Buffer.from(tokenData).toString('base64');
-
-  res.send(
-    JSON.stringify({
-      status: 'success',
-      message: 'Account Validated.',
-      token: token,
-      url: '',
-      accountType: 'growtopia',
-      accountAge: 2,
-    }),
-  );
+    const tokenData = `_token=${_token}&growId=${growId}&password=${password}&email_reg=${email}` + 
+                     (email ? '&has_reg=1' : '&has_reg=0');
+                    
+    const token = Buffer.from(tokenData).toString('base64');
+    res.send(
+        `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia", "accountAge": 2}`,
+    );
 });
 
 // Check token → validasi dan refresh token + accountAge: 2
