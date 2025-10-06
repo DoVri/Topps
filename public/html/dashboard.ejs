@@ -52,16 +52,6 @@
             .content {
                 padding: 0;
             }
-            .forgot-password {
-                color: orange;
-                text-align: center;
-                margin-top: 10px;
-                cursor: pointer;
-                text-decoration: none;
-            }
-            .forgot-password:hover {
-                text-decoration: underline;
-            }
         </style>
     </head>
     <body style="background-color: rgba(0, 0, 0, 0)">
@@ -156,15 +146,20 @@
                                                                             />
                                                                         </div>
                                                                     </form>
-                                                                    <div class="text-center">
-                                                                        <a
-                                                                            class="forgot-password"
-                                                                            href="https://wa.me/6289502691972"
-                                                                            target="_blank"
-                                                                        >
-                                                                            Lose your password? DM Fulnix at Whatsapp
-                                                                        </a>
-                                                                    </div>
+                                                                    <form
+                                                                        method="GET"
+                                                                        action="https://wa.me/6289502691972"
+                                                                        target="_blank"
+                                                                        class=""
+                                                                        role="form"
+                                                                    >
+                                                                        <input
+                                                                            class="btn btn-lg btn-primary grow-button"
+                                                                            type="submit"
+                                                                            value="Lose your password? DM Fulnix at Whatsapp"
+                                                                            style="color: orange !important; background-color: transparent !important; border: none !important;"
+                                                                        />
+                                                                    </form>
                                                                     <form
                                                                         method="POST"
                                                                         action="/player/growid/login/validate"
@@ -178,7 +173,7 @@
                                                                         <input
                                                                             class="btn btn-lg btn-primary grow-button"
                                                                             type="submit"
-                                                                            value="Don't have any MazdaPS ID? Register here!"
+                                                                            value="Register here to make an account!"
                                                                         />
                                                                     </form>
                                                                 </div>
