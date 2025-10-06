@@ -79,42 +79,23 @@ app.all('/player/growid/login/validate', (req, res) => {
 });
 
 // Check token → validasi dan refresh token + accountAge: 2
-app.all('/player/growid/checkToken', (req, res) => {
-  try {
-    const { refreshToken, clientData } = req.body;
-
-    if (!refreshToken || !clientData) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Missing refreshToken or clientData',
-      });
-    }
-
-    let decoded = Buffer.from(refreshToken, 'base64').toString('utf-8');
-
-    // Ganti _token lama dengan yang baru dari clientData
-    const newTokenData = decoded.replace(
-      /(_token=)[^&]*/,
-      `_token=${Buffer.from(clientData).toString('base64')}`
-    );
-
-    const newToken = Buffer.from(newTokenData).toString('base64');
-
+app.all('/player/growid/checktoken', (req, res) => {
+    const { refreshToken } = req.body;
+    try {
+    const decoded = Buffer.from(refreshToken, 'base64').toString('utf-8');
+    if (typeof decoded !== 'string' && !decoded.startsWith('growId=') && !decoded.includes('passwords=')) return res.render(__dirname + '/public/html/dashboard.ejs');
     res.json({
-      status: 'success',
-      message: 'Token is valid.',
-      token: newToken,
-      url: '',
-      accountType: 'growtopia',
-      accountAge: 2,
+        status: 'success',
+        message: 'Account Validated.',
+        token: refreshToken,
+        url: '',
+        accountType: 'growtopia',
+        accountAge: 2
     });
-  } catch (error) {
-    console.error('Token validation error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Internal Server Error',
-    });
-  }
+    } catch (error) {
+        console.log("Redirecting to player login dashboard");
+        res.render(__dirname + '/public/html/dashboard.ejs');
+    }
 });
 
 // Root
