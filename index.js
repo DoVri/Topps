@@ -39,9 +39,7 @@ app.use(rateLimiter({ windowMs: 15 * 60 * 1000, max: 100, headers: true }));
 // Server configuration - diubah menjadi dinamis
 let servers = {
     'mazda.privates.icu': { name: 'MazdaPS', port: 17091 },
-    'runps.privates.icu': { name: 'RunPS', port: 17092 },
-    'growtopia1.com': { name: 'GTPS #1', port: 17091 },
-    'growtopia2.com': { name: 'GTPS #2', port: 17092 }
+    'runps.privates.icu': { name: 'RunPS', port: 17092 }
 };
 
 // Route untuk menambah server
