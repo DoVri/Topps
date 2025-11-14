@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MazdaPS Login</title>
+    <title><%= serverName %> Login</title>
     <link rel="icon" type="image/png"
         href="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/assets/images/growtopia.ico"
         sizes="16x16" />
@@ -61,6 +61,20 @@
         .form-group {
             margin-bottom: 15px;
         }
+
+        .server-selector {
+            margin-bottom: 15px;
+        }
+
+        .server-selector select {
+            width: 100%;
+            height: 45px;
+            font-size: 16px;
+            padding: 10px 15px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body style="background-color: rgba(0, 0, 0, 0)">
@@ -81,7 +95,7 @@
                                                 <section class="common-box">
                                                     <div class="container">
                                                         <div class="section-title center-align">
-                                                            <h2>Login to MazdaPS</h2>
+                                                            <h2>Login to <%= serverName %></h2>
                                                         </div>
                                                         <div class="row div-content-center">
                                                             <div class="col-md-12 col-sm-12">
@@ -91,16 +105,26 @@
                                                                     required="required" autocomplete="off">
                                                                     <input name="_token" type="hidden"
                                                                         value="[object Object]" />
+                                                                    
+                                                                    <!-- Server Selection -->
+                                                                    <div class="form-group server-selector">
+                                                                        <label for="server-select">Select Server:</label>
+                                                                        <select id="server-select" name="server_port">
+                                                                            <option value="17091">MazdaPS (Port 17091)</option>
+                                                                            <option value="17092">RunPS (Port 17092)</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    
                                                                     <div class="form-group">
                                                                         <input id="login-name"
                                                                             class="form-control grow-text w-100"
-                                                                            placeholder="Your MazdaPS Name *" name="growId"
+                                                                            placeholder="Your <%= serverName %> Name *" name="growId"
                                                                             type="text" />
                                                                     </div>
                                                                     <div class="form-group">
                                                                         <input id="password"
                                                                             class="form-control grow-text w-100"
-                                                                            placeholder="Your MazdaPS Password *"
+                                                                            placeholder="Your <%= serverName %> Password *"
                                                                             name="password" type="password" value="" />
                                                                     </div>
                                                                     <div class="form-group text-center">
@@ -108,15 +132,6 @@
                                                                             class="btn btn-lg btn-primary grow-button w-100"
                                                                             type="submit" value="Login" />
                                                                     </div>
-                                                                </form>
-
-                                                                <form method="GET"
-                                                                    action="https://wa.me/6289502691972"
-                                                                    target="_blank" class="" role="form">
-                                                                    <input
-                                                                        class="btn btn-lg btn-primary grow-button orange-text w-100"
-                                                                        type="submit"
-                                                                        value="Lost your password? DM Fulnix on WhatsApp" />
                                                                 </form>
 
                                                                 <form method="POST"
@@ -128,7 +143,7 @@
                                                                     <input
                                                                         class="btn btn-lg btn-primary grow-button w-100"
                                                                         type="submit"
-                                                                        value="Don't have a MazdaPS ID? Register here!" />
+                                                                        value="Don't have a <%= serverName %> ID? Register here!" />
                                                                 </form>
                                                             </div>
                                                         </div>
@@ -157,14 +172,13 @@
                 clicked = true;
                 return true;
             }
-            $(this).attr('onclick', 'return false;');
+            $(this).attr('onclick', 'return false.');
         });
         $(document).ready(function () {
             document.onkeydown = e => {
                 if (e.key == 123) e.preventDefault();
                 if (e.key == 'F12') e.preventDefault();
                 if (e.ctrlKey && e.shiftKey && e.key == 'I') e.preventDefault();
-                if (e.ctrlKey && e.key == 'I') e.preventDefault();
                 if (e.ctrlKey && e.shiftKey && e.key == 'C') e.preventDefault();
                 if (e.ctrlKey && e.shiftKey && e.key == 'J') e.preventDefault();
                 if (e.ctrlKey && e.key == 'U') e.preventDefault();
@@ -204,6 +218,16 @@
             if (localStorage.getItem('growId')) {
                 document.getElementById('login-name').value = localStorage.getItem('growId');
             }
+            
+            // Save selected server in localStorage
+            const serverSelect = document.getElementById('server-select');
+            if (localStorage.getItem('selectedServer')) {
+                serverSelect.value = localStorage.getItem('selectedServer');
+            }
+            
+            serverSelect.addEventListener('change', function() {
+                localStorage.setItem('selectedServer', this.value);
+            });
         });
     </script>
 </body>
