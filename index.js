@@ -36,11 +36,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(rateLimiter({ windowMs: 15 * 60 * 1000, max: 100, headers: true }));
 
-// Server configuration - diubah menjadi dinamis
-let servers = {
-    'mazda.privates.icu': { name: 'MazdaPS', port: 17091 },
-    'runps.privates.icu': { name: 'RunPS', port: 17092 }
-};
+// Server configuration - diubah menjadi array
+let servers = [
+    { domain: 'mazda.privates.icu', name: 'MazdaPS', port: 17091 },
+    { domain: 'runps.privates.icu', name: 'RunPS', port: 17092 },
+    { domain: 'growtopia1.com', name: 'GTPS #1', port: 17091 },
+    { domain: 'growtopia2.com', name: 'GTPS #2', port: 17092 }
+];
 
 // Route untuk menambah server
 app.get('/add-servers', (req, res) => {
@@ -56,8 +58,8 @@ app.get('/add-servers', (req, res) => {
         return res.status(400).send('Invalid port number');
     }
 
-    // Tambahkan server baru ke objek servers
-    servers[add] = { name: name, port: portNum };
+    // Tambahkan server baru ke array servers
+    servers.push({ domain: add, name: name, port: portNum });
 
     console.log(`[SERVER ADDED] Domain: ${add}, Name: ${name}, Port: ${portNum}`);
 
@@ -71,33 +73,45 @@ app.get('/add-servers', (req, res) => {
 
 // Route untuk menghapus server
 app.get('/delete-servers', (req, res) => {
-    const { remove } = req.query; // Gunakan 'remove' untuk menghindari konflik dengan 'add'
+    const { remove, name: nameToRemove, port: portToRemove } = req.query;
 
-    if (!remove) {
-        return res.status(400).send('Missing required parameter: remove (domain to delete)');
+    if (!remove && !nameToRemove && !portToRemove) {
+        return res.status(400).send('Missing required parameter: remove (domain), name, or port to identify the server');
     }
 
-    // Periksa apakah server dengan domain tersebut ada
-    if (servers.hasOwnProperty(remove)) {
-        const removedServer = servers[remove];
-        // Hapus server dari objek servers
-        delete servers[remove];
-        console.log(`[SERVER DELETED] Domain: ${remove}, Name: ${removedServer.name}, Port: ${removedServer.port}`);
+    // Temukan indeks server yang cocok dengan kriteria
+    const index = servers.findIndex(server => {
+        // Cocokkan berdasarkan domain dan/atau name dan/atau port
+        // Jika parameter tidak disediakan, abaikan pengecekan untuk parameter tersebut
+        const matchesDomain = !remove || server.domain === remove;
+        const matchesName = !nameToRemove || server.name === nameToRemove;
+        const matchesPort = !portToRemove || server.port === parseInt(portToRemove, 10);
+
+        return matchesDomain && matchesName && matchesPort;
+    });
+
+    if (index !== -1) {
+        const removedServer = servers[index];
+        // Hapus server dari array servers
+        servers.splice(index, 1);
+        console.log(`[SERVER DELETED] Domain: ${removedServer.domain}, Name: ${removedServer.name}, Port: ${removedServer.port}`);
         res.json({
             status: 'success',
-            message: `Server ${remove} (${removedServer.name}, Port ${removedServer.port}) deleted successfully.`,
+            message: `Server ${removedServer.domain} (${removedServer.name}, Port ${removedServer.port}) deleted successfully.`,
             servers: servers
         });
     } else {
         // Server tidak ditemukan
-        console.log(`[DELETE FAILED] Server with domain ${remove} not found.`);
+        console.log(`[DELETE FAILED] Server matching criteria not found.`);
         res.status(404).json({
             status: 'error',
-            message: `Server with domain ${remove} not found.`,
+            message: 'Server matching criteria not found.',
             servers: servers
         });
     }
 });
+
+
 // Favicon
 app.get('/favicon.:ext', function (req, res) {
   res.sendFile(path.join(__dirname, 'public', 'favicon.ico'));
@@ -122,8 +136,10 @@ app.all('/player/login/dashboard', function (req, res) {
   }
 
   // Get server name from hostname
+  // Cari server berdasarkan hostname dalam array
   const hostname = req.hostname;
-  const serverName = servers[hostname]?.name || hostname.split(".")[0] || "MazdaPS";
+  const foundServer = servers.find(server => server.domain === hostname);
+  const serverName = foundServer ? foundServer.name : hostname.split(".")[0] || "MazdaPS";
 
   // Kirim data servers ke EJS
   res.render(__dirname + '/public/html/dashboard.ejs', {
