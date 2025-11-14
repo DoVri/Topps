@@ -73,7 +73,7 @@ app.all('/player/login/dashboard', function (req, res) {
   const serverName = servers[hostname]?.name || hostname.split(".")[0] || "MazdaPS";
 
   res.render(__dirname + '/public/html/dashboard.ejs', { 
-    data: tData,
+     tData,
     serverName: serverName
   });
 });
@@ -86,14 +86,9 @@ app.all('/player/growid/login/validate', (req, res) => {
   const serverPort = req.body.server_port || '17091'; // Get selected server port
 
   // Create token with server port information
-  const tokenData = {
-    _token: _token,
-    growId: growId,
-    password: password,
-    server_port: serverPort
-  };
-
-  const token = Buffer.from(JSON.stringify(tokenData)).toString('base64');
+  const token = Buffer.from(
+    `_token=${_token}&growId=${growId}&password=${password}&server_port=${serverPort}`
+  ).toString('base64');
 
   res.send(
     `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia","accountAge":2}`
