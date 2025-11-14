@@ -71,6 +71,35 @@ app.get('/add-servers', (req, res) => {
     });
 });
 
+// Route untuk menghapus server
+app.get('/delete-servers', (req, res) => {
+    const { remove } = req.query; // Gunakan 'remove' untuk menghindari konflik dengan 'add'
+
+    if (!remove) {
+        return res.status(400).send('Missing required parameter: remove (domain to delete)');
+    }
+
+    // Periksa apakah server dengan domain tersebut ada
+    if (servers.hasOwnProperty(remove)) {
+        const removedServer = servers[remove];
+        // Hapus server dari objek servers
+        delete servers[remove];
+        console.log(`[SERVER DELETED] Domain: ${remove}, Name: ${removedServer.name}, Port: ${removedServer.port}`);
+        res.json({
+            status: 'success',
+            message: `Server ${remove} (${removedServer.name}, Port ${removedServer.port}) deleted successfully.`,
+            servers: servers
+        });
+    } else {
+        // Server tidak ditemukan
+        console.log(`[DELETE FAILED] Server with domain ${remove} not found.`);
+        res.status(404).json({
+            status: 'error',
+            message: `Server with domain ${remove} not found.`,
+            servers: servers
+        });
+    }
+});
 // Favicon
 app.get('/favicon.:ext', function (req, res) {
   res.sendFile(path.join(__dirname, 'public', 'favicon.ico'));
