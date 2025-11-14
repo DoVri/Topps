@@ -37,6 +37,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(rateLimiter({ windowMs: 15 * 60 * 1000, max: 100, headers: true }));
 
+// Server configuration
+const servers = {
+    'mazda.privates.icu': { name: 'MazdaPS', port: 17091 },
+    'runps.privates.icu': { name: 'RunPS', port: 17092 },
+    'growtopia1.com': { name: 'GTPS #1', port: 17091 },
+    'growtopia2.com': { name: 'GTPS #2', port: 17092 }
+};
+
 // Favicon
 app.get('/favicon.:ext', function (req, res) {
   res.sendFile(path.join(__dirname, 'public', 'favicon.ico'));
@@ -60,7 +68,14 @@ app.all('/player/login/dashboard', function (req, res) {
     console.log(`Warning: ${why}`);
   }
 
-  res.render(__dirname + '/public/html/dashboard.ejs', { data: tData });
+  // Get server name from hostname
+  const hostname = req.hostname;
+  const serverName = servers[hostname]?.name || hostname.split(".")[0] || "MazdaPS";
+
+  res.render(__dirname + '/public/html/dashboard.ejs', { 
+    data: tData,
+    serverName: serverName
+  });
 });
 
 // Validasi login → generate token + accountAge: 2
@@ -68,10 +83,17 @@ app.all('/player/growid/login/validate', (req, res) => {
   const _token = req.body._token || '';
   const growId = req.body.growId || '';
   const password = req.body.password || '';
+  const serverPort = req.body.server_port || '17091'; // Get selected server port
 
-  const token = Buffer.from(
-    `_token=${_token}&growId=${growId}&password=${password}`
-  ).toString('base64');
+  // Create token with server port information
+  const tokenData = {
+    _token: _token,
+    growId: growId,
+    password: password,
+    server_port: serverPort
+  };
+
+  const token = Buffer.from(JSON.stringify(tokenData)).toString('base64');
 
   res.send(
     `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia","accountAge":2}`
@@ -100,7 +122,7 @@ app.all('/player/growid/checktoken', (req, res) => {
 
 // Root
 app.get('/', function (req, res) {
-  res.send('Welcome to MazdaPS!');
+  res.send('Welcome to MazdaPS Multi-Server Login URL!');
 });
 
 // Start server
