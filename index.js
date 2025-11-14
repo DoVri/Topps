@@ -26,10 +26,9 @@ app.use(function (req, res, next) {
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content-Type, Accept',
   );
+  // Perbaikan: Status kode belum ditentukan saat logging
   console.log(
-    `[${new Date().toLocaleString()}] ${req.method} ${req.url} - ${
-      res.statusCode
-    }`,
+    `[${new Date().toLocaleString()}] ${req.method} ${req.url} - ${res.statusCode || 'N/A'}`
   );
   next();
 });
@@ -37,13 +36,40 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(rateLimiter({ windowMs: 15 * 60 * 1000, max: 100, headers: true }));
 
-// Server configuration
-const servers = {
+// Server configuration - diubah menjadi dinamis
+let servers = {
     'mazda.privates.icu': { name: 'MazdaPS', port: 17091 },
     'runps.privates.icu': { name: 'RunPS', port: 17092 },
     'growtopia1.com': { name: 'GTPS #1', port: 17091 },
     'growtopia2.com': { name: 'GTPS #2', port: 17092 }
 };
+
+// Route untuk menambah server
+app.get('/add-servers', (req, res) => {
+    const { add, name, port } = req.query;
+
+    if (!add || !name || !port) {
+        return res.status(400).send('Missing required parameters: add, name, port');
+    }
+
+    // Validasi port (harus angka)
+    const portNum = parseInt(port, 10);
+    if (isNaN(portNum) || portNum <= 0 || portNum > 65535) {
+        return res.status(400).send('Invalid port number');
+    }
+
+    // Tambahkan server baru ke objek servers
+    servers[add] = { name: name, port: portNum };
+
+    console.log(`[SERVER ADDED] Domain: ${add}, Name: ${name}, Port: ${portNum}`);
+
+    // Kembalikan response sukses
+    res.json({
+        status: 'success',
+        message: `Server ${add} (${name}, Port ${portNum}) added successfully.`,
+        servers: servers
+    });
+});
 
 // Favicon
 app.get('/favicon.:ext', function (req, res) {
@@ -72,9 +98,11 @@ app.all('/player/login/dashboard', function (req, res) {
   const hostname = req.hostname;
   const serverName = servers[hostname]?.name || hostname.split(".")[0] || "MazdaPS";
 
-  res.render(__dirname + '/public/html/dashboard.ejs', { 
+  // Kirim data servers ke EJS
+  res.render(__dirname + '/public/html/dashboard.ejs', {
      tData,
-    serverName: serverName
+    serverName: serverName,
+    servers: servers // <-- Tambahkan ini
   });
 });
 
