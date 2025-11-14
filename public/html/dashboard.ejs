@@ -127,11 +127,15 @@
                                                                     <input name="_token" type="hidden"
                                                                         value="[object Object]" />
                                                                     
-                                                                   <div class="form-group server-selector">
+                                                            <div class="form-group server-selector">
     <label for="server-select">Select Server:</label>
     <select id="server-select" name="server_port">
-        <option value="17091">MazdaPS (Port 17091)</option>
-        <option value="17092">RunPS (Port 17092)</option>
+        <!-- Loop melalui servers yang dikirim dari server -->
+        <% for (const domain in servers) { %>
+            <option value="<%= servers[domain].port %>">
+                <%= servers[domain].name %> (Port <%= servers[domain].port %>)
+            </option>
+        <% } %>
     </select>
 </div>
                                                                     
