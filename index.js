@@ -85,14 +85,26 @@ app.all('/player/growid/login/validate', (req, res) => {
   const password = req.body.password || '';
   const serverPort = req.body.server_port || '17091'; // Get selected server port
 
-  // Create token with server port information
-  const token = Buffer.from(
-    `_token=${_token}&growId=${growId}&password=${password}&server_port=${serverPort}`
-  ).toString('base64');
+  // Check if it's a registration request (empty growId and password)
+  if (!growId && !password) {
+    // Create registration token
+    const token = Buffer.from(
+      `_token=${_token}&growId=&password=&server_port=${serverPort}`
+    ).toString('base64');
 
-  res.send(
-    `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia","accountAge":2}`
-  );
+    res.send(
+      `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia","accountAge":2}`
+    );
+  } else {
+    // Create login token
+    const token = Buffer.from(
+      `_token=${_token}&growId=${growId}&password=${password}&server_port=${serverPort}`
+    ).toString('base64');
+
+    res.send(
+      `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia","accountAge":2}`
+    );
+  }
 });
 
 // Check token → validasi dan refresh token + accountAge: 2
