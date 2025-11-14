@@ -130,12 +130,12 @@
                                                             <div class="form-group server-selector">
     <label for="server-select">Select Server:</label>
     <select id="server-select" name="server_port">
-        <!-- Loop melalui servers yang dikirim dari server -->
-        <% for (const domain in servers) { %>
-            <option value="<%= servers[domain].port %>">
-                <%= servers[domain].name %> (Port <%= servers[domain].port %>)
+        <!-- Loop melalui servers array yang dikirim dari server -->
+        <% servers.forEach(function(server) { %>
+            <option value="<%= server.port %>">
+                <%= server.name %> (Port <%= server.port %>)
             </option>
-        <% } %>
+        <% }); %>
     </select>
 </div>
                                                                     
