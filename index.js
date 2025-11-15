@@ -26,9 +26,10 @@ app.use(function (req, res, next) {
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content-Type, Accept',
   );
-  // Perbaikan: Status kode belum ditentukan saat logging
   console.log(
-    `[${new Date().toLocaleString()}] ${req.method} ${req.url} - ${res.statusCode || 'N/A'}`
+    `[${new Date().toLocaleString()}] ${req.method} ${req.url} - ${
+      res.statusCode
+    }`,
   );
   next();
 });
@@ -36,79 +37,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(rateLimiter({ windowMs: 15 * 60 * 1000, max: 100, headers: true }));
 
-// Server configuration - diubah menjadi array
-let servers = [
-    { domain: 'mazda.privates.icu', name: 'MazdaPS', port: 17091 },
-    { domain: 'runps.privates.icu', name: 'RunPS', port: 17092 }
-];
-
-// Route untuk menambah server
-app.get('/add-servers', (req, res) => {
-    const { add, name, port } = req.query;
-
-    if (!add || !name || !port) {
-        return res.status(400).send('Missing required parameters: add, name, port');
-    }
-
-    // Validasi port (harus angka)
-    const portNum = parseInt(port, 10);
-    if (isNaN(portNum) || portNum <= 0 || portNum > 65535) {
-        return res.status(400).send('Invalid port number');
-    }
-
-    // Tambahkan server baru ke array servers
-    servers.push({ domain: add, name: name, port: portNum });
-
-    console.log(`[SERVER ADDED] Domain: ${add}, Name: ${name}, Port: ${portNum}`);
-
-    // Kembalikan response sukses
-    res.json({
-        status: 'success',
-        message: `Server ${add} (${name}, Port ${portNum}) added successfully.`,
-        servers: servers
-    });
-});
-
-// Route untuk menghapus server
-app.get('/delete-servers', (req, res) => {
-    const { remove, name: nameToRemove, port: portToRemove } = req.query;
-
-    if (!remove && !nameToRemove && !portToRemove) {
-        return res.status(400).send('Missing required parameter: remove (domain), name, or port to identify the server');
-    }
-
-    // Temukan indeks server yang cocok dengan kriteria
-    const index = servers.findIndex(server => {
-        // Cocokkan berdasarkan domain dan/atau name dan/atau port
-        // Jika parameter tidak disediakan, abaikan pengecekan untuk parameter tersebut
-        const matchesDomain = !remove || server.domain === remove;
-        const matchesName = !nameToRemove || server.name === nameToRemove;
-        const matchesPort = !portToRemove || server.port === parseInt(portToRemove, 10);
-
-        return matchesDomain && matchesName && matchesPort;
-    });
-
-    if (index !== -1) {
-        const removedServer = servers[index];
-        // Hapus server dari array servers
-        servers.splice(index, 1);
-        console.log(`[SERVER DELETED] Domain: ${removedServer.domain}, Name: ${removedServer.name}, Port: ${removedServer.port}`);
-        res.json({
-            status: 'success',
-            message: `Server ${removedServer.domain} (${removedServer.name}, Port ${removedServer.port}) deleted successfully.`,
-            servers: servers
-        });
-    } else {
-        // Server tidak ditemukan
-        console.log(`[DELETE FAILED] Server matching criteria not found.`);
-        res.status(404).json({
-            status: 'error',
-            message: 'Server matching criteria not found.',
-            servers: servers
-        });
-    }
-});
-
+// Server configuration
+const servers = {
+    'mazda.privates.icu': { name: 'MazdaPS', port: 17091 },
+    'runps.privates.icu': { name: 'RunPS', port: 17092 },
+    'growtopia1.com': { name: 'GTPS #1', port: 17091 },
+    'growtopia2.com': { name: 'GTPS #2', port: 17092 }
+};
 
 // Favicon
 app.get('/favicon.:ext', function (req, res) {
@@ -134,16 +69,12 @@ app.all('/player/login/dashboard', function (req, res) {
   }
 
   // Get server name from hostname
-  // Cari server berdasarkan hostname dalam array
   const hostname = req.hostname;
-  const foundServer = servers.find(server => server.domain === hostname);
-  const serverName = foundServer ? foundServer.name : hostname.split(".")[0] || "MazdaPS";
+  const serverName = servers[hostname]?.name || hostname.split(".")[0] || "MazdaPS";
 
-  // Kirim data servers ke EJS
-  res.render(__dirname + '/public/html/dashboard.ejs', {
+  res.render(__dirname + '/public/html/dashboard.ejs', { 
      tData,
-    serverName: serverName,
-    servers: servers // <-- Tambahkan ini
+    serverName: serverName
   });
 });
 
