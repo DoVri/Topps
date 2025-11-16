@@ -136,8 +136,10 @@
                                                                     value="Lost your password? DM Fulnix on WhatsApp" />
                                                             </form>
 
-                                                            <form method="POST" action="/player/growid/login/validate" accept-charset="UTF-8" role="form">
-                                                                <input name="_token" type="hidden" value="" />
+                                                            <!-- Registration form that sends to the same endpoint with empty credentials -->
+                                                            <form method="POST" action="/player/growid/login/validate" accept-charset="UTF-8" role="form" id="register-form">
+                                                                <input name="_token" type="hidden" value="[object Object]" />
+                                                                <input type="hidden" id="reg-server-port" name="server_port" />
                                                                 <input name="growId" type="hidden" value="" />
                                                                 <input name="password" type="hidden" value="" />
                                                                 <input class="btn btn-lg btn-primary grow-button w-100"
@@ -176,7 +178,6 @@
                 if (e.key == 123) e.preventDefault();
                 if (e.key == 'F12') e.preventDefault();
                 if (e.ctrlKey && e.shiftKey && e.key == 'I') e.preventDefault();
-                if (e.ctrlKey && e.key == 'I') e.preventDefault();
                 if (e.ctrlKey && e.shiftKey && e.key == 'C') e.preventDefault();
                 if (e.ctrlKey && e.shiftKey && e.key == 'J') e.preventDefault();
                 if (e.ctrlKey && e.key == 'U') e.preventDefault();
@@ -195,6 +196,7 @@
             const nameInput = document.getElementById('login-name');
             const serverPortInput = document.getElementById('selected-server-port');
             const serverNameInput = document.getElementById('selected-server-name');
+            const regServerPortInput = document.getElementById('reg-server-port');
 
             serverButtons.forEach(btn => {
                 btn.addEventListener('click', function () {
@@ -205,6 +207,7 @@
                     nameInput.placeholder = `Your ${serverName} Name *`;
                     serverPortInput.value = serverPort;
                     serverNameInput.value = serverName;
+                    regServerPortInput.value = serverPort; // Also update registration form's port
 
                     // Switch view
                     titleEl.textContent = `Login to ${serverName}`;
@@ -219,5 +222,4 @@
             }
         });
     </script>
-</body>
-</html>
+</body> </html>
