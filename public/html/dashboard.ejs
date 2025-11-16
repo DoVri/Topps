@@ -136,16 +136,9 @@
                                                                     value="Lost your password? DM Fulnix on WhatsApp" />
                                                             </form>
 
-                                                            <!-- Registration form that sends to the same endpoint with empty credentials -->
-                                                            <form method="POST" action="/player/growid/login/validate" accept-charset="UTF-8" role="form" id="register-form">
-                                                                <input name="_token" type="hidden" value="[object Object]" />
-                                                                <input type="hidden" id="reg-server-port" name="server_port" />
-                                                                <input name="growId" type="hidden" value="" />
-                                                                <input name="password" type="hidden" value="" />
-                                                                <input class="btn btn-lg btn-primary grow-button w-100"
-                                                                    type="submit"
-                                                                    value="Don't have an ID? Register here!" />
-                                                            </form>
+                                                            <!-- Registration button that redirects to external registration page -->
+                                                            <button class="btn btn-lg btn-primary grow-button w-100" id="register-btn"
+                                                                value="Don't have an ID? Register here!" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -196,24 +189,35 @@
             const nameInput = document.getElementById('login-name');
             const serverPortInput = document.getElementById('selected-server-port');
             const serverNameInput = document.getElementById('selected-server-name');
-            const regServerPortInput = document.getElementById('reg-server-port');
+            const registerBtn = document.getElementById('register-btn');
+
+            let selectedServer = 'MazdaPS';
+            let selectedPort = '17091';
 
             serverButtons.forEach(btn => {
                 btn.addEventListener('click', function () {
-                    const serverPort = this.getAttribute('data-server');
-                    const serverName = this.getAttribute('data-name');
+                    selectedPort = this.getAttribute('data-server');
+                    selectedServer = this.getAttribute('data-name');
 
                     // Update placeholder & hidden inputs
-                    nameInput.placeholder = `Your ${serverName} Name *`;
-                    serverPortInput.value = serverPort;
-                    serverNameInput.value = serverName;
-                    regServerPortInput.value = serverPort; // Also update registration form's port
+                    nameInput.placeholder = `Your ${selectedServer} Name *`;
+                    serverPortInput.value = selectedPort;
+                    serverNameInput.value = selectedServer;
 
                     // Switch view
-                    titleEl.textContent = `Login to ${serverName}`;
+                    titleEl.textContent = `Login to ${selectedServer}`;
                     serverSelection.style.display = 'none';
                     loginForm.style.display = 'block';
+
+                    // Update register button with selected server
+                    registerBtn.textContent = `Don't have a ${selectedServer} ID? Register here!`;
                 });
+            });
+
+            // Handle register button click
+            registerBtn.addEventListener('click', function() {
+                // Open registration page in new window with server parameter
+                window.open(`http://152.42.214.203:8000/?server=${encodeURIComponent(selectedServer)}`, '_blank');
             });
 
             // Restore growId from localStorage
