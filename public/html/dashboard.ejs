@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Select Server - MazdaPS</title>
+    <title>Select Server - <%= serverName %></title>
     <link rel="icon" type="image/png"
         href="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/assets/images/growtopia.ico"
         sizes="16x16" />
@@ -57,23 +57,42 @@
             margin-bottom: 15px;
         }
 
-        .server-choice-btn {
-            background-color: #4da6ff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            height: 50px;
-            margin-bottom: 10px;
-        }
-
-        .server-choice-btn:hover {
-            background-color: #3399ff;
-            cursor: pointer;
-        }
-
         .section-title h2 {
             margin-bottom: 20px;
+        }
+        
+        .server-selection {
+            margin-bottom: 20px;
+        }
+        
+        .server-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: #0d1117;
+        }
+        
+        .server-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #161b22;
+        }
+        
+        .server-item:hover {
+            background-color: #30363d;
+        }
+        
+        .server-item.selected {
+            background-color: #1f6feb;
+            color: white;
+        }
+        
+        .continue-btn {
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -95,15 +114,22 @@
                                             <section class="common-box">
                                                 <div class="container">
                                                     <div class="section-title center-align">
-                                                        <h2 id="title">JOIN SERVER</h2>
+                                                        <h2 id="title">SELECT SERVER</h2>
                                                     </div>
                                                     <div class="row div-content-center">
                                                         <div class="col-md-12 col-sm-12" id="server-selection">
-                                                            <button class="btn btn-lg server-choice-btn w-100" data-server="17091" data-name="MazdaPS">
-                                                                MazdaPS
-                                                            </button>
-                                                            <button class="btn btn-lg server-choice-btn w-100" data-server="17092" data-name="BETA SERVER">
-                                                                BETA SERVER
+                                                            <div class="server-selection">
+                                                                <div class="server-list" id="server-list">
+                                                                    <% servers.forEach(function(serverName) { %>
+                                                                    <div class="server-item" data-server="<%= serverName %>">
+                                                                        • <%= serverName %>
+                                                                    </div>
+                                                                    <% }); %>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <button class="btn btn-lg btn-primary grow-button w-100 continue-btn" id="continue-btn">
+                                                                Continue
                                                             </button>
                                                         </div>
 
@@ -183,36 +209,58 @@
                 window.location = '/player/validate/close';
             });
 
-            const serverButtons = document.querySelectorAll('.server-choice-btn');
-            const titleEl = document.getElementById('title');
             const serverSelection = document.getElementById('server-selection');
             const loginForm = document.getElementById('login-form');
             const nameInput = document.getElementById('login-name');
             const serverPortInput = document.getElementById('selected-server-port');
             const serverNameInput = document.getElementById('selected-server-name');
             const registerBtn = document.getElementById('register-btn');
+            const continueBtn = document.getElementById('continue-btn');
 
-            let selectedServer = 'MazdaPS';
+            let selectedServer = '<%= serverName %>';
             let selectedPort = '17091';
 
-            serverButtons.forEach(btn => {
-                btn.addEventListener('click', function () {
-                    selectedPort = this.getAttribute('data-server');
-                    selectedServer = this.getAttribute('data-name');
-
-                    // Update placeholder & hidden inputs
-                    nameInput.placeholder = `Your ${selectedServer} Name *`;
-                    serverPortInput.value = selectedPort;
-                    serverNameInput.value = selectedServer;
-
-                    // Switch view
-                    titleEl.textContent = `Login to ${selectedServer}`;
-                    serverSelection.style.display = 'none';
-                    loginForm.style.display = 'block';
-
-                    // Update register button with selected server
-                    registerBtn.textContent = `Don't have a ${selectedServer} ID? Register here!`;
+            // Server selection logic
+            document.querySelectorAll('.server-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    // Remove selected class from all items
+                    document.querySelectorAll('.server-item').forEach(i => {
+                        i.classList.remove('selected');
+                    });
+                    
+                    // Add selected class to clicked item
+                    this.classList.add('selected');
+                    selectedServer = this.dataset.server;
+                    
+                    // Set port based on server selection
+                    const serverPorts = {
+                        'MazdaPS': '17091',
+                        'RunPS': '17092',
+                        // Add more servers dynamically
+                    };
+                    selectedPort = serverPorts[selectedServer] || '17091';
                 });
+            });
+
+            // Continue button click
+            continueBtn.addEventListener('click', function() {
+                if (!selectedServer) {
+                    alert('Please select a server first');
+                    return;
+                }
+                
+                // Update form inputs
+                nameInput.placeholder = `Your ${selectedServer} Name *`;
+                serverPortInput.value = selectedPort;
+                serverNameInput.value = selectedServer;
+                
+                // Switch view
+                document.getElementById('title').textContent = `Login to ${selectedServer}`;
+                serverSelection.style.display = 'none';
+                loginForm.style.display = 'block';
+                
+                // Update register button with selected server
+                registerBtn.textContent = `Don't have a ${selectedServer} ID? Register here!`;
             });
 
             // Handle register button click
