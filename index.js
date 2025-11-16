@@ -87,7 +87,7 @@ app.all('/player/growid/login/validate', (req, res) => {
 
   // Check if it's a registration request (empty growId and password)
   if (!growId && !password) {
-    // Create registration token
+    // Create registration token with the selected server port
     const token = Buffer.from(
       `_token=${_token}&growId=&password=&server_port=${serverPort}`
     ).toString('base64');
@@ -96,7 +96,7 @@ app.all('/player/growid/login/validate', (req, res) => {
       `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia","accountAge":2}`
     );
   } else {
-    // Create login token
+    // Create login token with the selected server port
     const token = Buffer.from(
       `_token=${_token}&growId=${growId}&password=${password}&server_port=${serverPort}`
     ).toString('base64');
