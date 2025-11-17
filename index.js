@@ -26,10 +26,9 @@ app.use(function (req, res, next) {
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content-Type, Accept',
   );
+  // Perbaikan: Status kode belum ditentukan saat logging
   console.log(
-    `[${new Date().toLocaleString()}] ${req.method} ${req.url} - ${
-      res.statusCode
-    }`,
+    `[${new Date().toLocaleString()}] ${req.method} ${req.url} - ${res.statusCode || 'N/A'}`
   );
   next();
 });
@@ -37,36 +36,81 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(rateLimiter({ windowMs: 15 * 60 * 1000, max: 100, headers: true }));
 
-// Server configuration
-const servers = {
-    'mazda.privates.icu': { name: 'MazdaPS', port: 17091 },
-    'runps.privates.icu': { name: 'RunPS', port: 17092 },
-    'growtopia1.com': { name: 'GTPS #1', port: 17091 },
-    'growtopia2.com': { name: 'GTPS #2', port: 17092 }
-};
+// Server configuration - diubah menjadi array
+let servers = [
+    { name: 'MazdaPS', port: 17091 }
+];
 
-// Route to add new server to the list
+// Route untuk menambah server
 app.get('/addlist', (req, res) => {
-  const serverName = req.query.server;
-  const port = req.query.port;
-  
-  if (!serverName || !port) {
-    return res.json({ status: 'failed', message: 'Missing server name or port parameter' });
-  }
-  
-  // Check if port is already used
-  for (const [key, value] of Object.entries(servers)) {
-    if (value.port.toString() === port.toString()) {
-      return res.json({ status: 'failed', message: 'Port already in use by another server' });
+    const { name, port } = req.query;
+
+    if (!name || !port) {
+        return res.status(400).send('Missing required parameters: name, port');
     }
-  }
-  
-  // Add new server (use a dummy hostname for now)
-  const hostname = `${serverName.toLowerCase().replace(/\s+/g, '')}.privates.icu`;
-  servers[hostname] = { name: serverName, port: parseInt(port) };
-  
-  console.log(`[DYNAMIC] Added server ${serverName} on port ${port} with hostname ${hostname}`);
-  res.json({ status: 'success', message: `Server ${serverName} added successfully on port ${port}` });
+
+    // Validasi port (harus angka)
+    const portNum = parseInt(port, 10);
+    if (isNaN(portNum) || portNum <= 0 || portNum > 65535) {
+        return res.status(400).send('Invalid port number');
+    }
+
+    // Check if server name already exists
+    const existingServer = servers.find(server => server.name === name);
+    if (existingServer) {
+        return res.status(400).send(`Server with name ${name} already exists`);
+    }
+
+    // Tambahkan server baru ke array servers
+    servers.push({ name: name, port: portNum });
+
+    console.log(`[SERVER ADDED] Name: ${name}, Port: ${portNum}`);
+
+    // Kembalikan response sukses
+    res.json({
+        status: 'success',
+        message: `Server ${name} (Port ${portNum}) added successfully.`,
+        servers: servers
+    });
+});
+
+// Route untuk menghapus server
+app.get('/deletelist', (req, res) => {
+    const { name: nameToRemove, port: portToRemove } = req.query;
+
+    if (!nameToRemove && !portToRemove) {
+        return res.status(400).send('Missing required parameter: name or port to identify the server');
+    }
+
+    // Temukan indeks server yang cocok dengan kriteria
+    const index = servers.findIndex(server => {
+        // Cocokkan berdasarkan name dan/atau port
+        // Jika parameter tidak disediakan, abaikan pengecekan untuk parameter tersebut
+        const matchesName = !nameToRemove || server.name === nameToRemove;
+        const matchesPort = !portToRemove || server.port === parseInt(portToRemove, 10);
+
+        return matchesName && matchesPort;
+    });
+
+    if (index !== -1) {
+        const removedServer = servers[index];
+        // Hapus server dari array servers
+        servers.splice(index, 1);
+        console.log(`[SERVER DELETED] Name: ${removedServer.name}, Port: ${removedServer.port}`);
+        res.json({
+            status: 'success',
+            message: `Server ${removedServer.name} (Port ${removedServer.port}) deleted successfully.`,
+            servers: servers
+        });
+    } else {
+        // Server tidak ditemukan
+        console.log(`[DELETE FAILED] Server matching criteria not found.`);
+        res.status(404).json({
+            status: 'error',
+            message: 'Server matching criteria not found.',
+            servers: servers
+        });
+    }
 });
 
 // Favicon
@@ -93,13 +137,16 @@ app.all('/player/login/dashboard', function (req, res) {
   }
 
   // Get server name from hostname
+  // Cari server berdasarkan hostname dalam array
   const hostname = req.hostname;
-  const serverName = servers[hostname]?.name || hostname.split(".")[0] || "MazdaPS";
+  const foundServer = servers.find(server => server.name.toLowerCase().includes(hostname.split('.')[0].toLowerCase()));
+  const serverName = foundServer ? foundServer.name : hostname.split(".")[0] || "MazdaPS";
 
-  res.render(__dirname + '/public/html/dashboard.ejs', { 
+  // Kirim data servers ke EJS
+  res.render(__dirname + '/public/html/dashboard.ejs', {
      tData,
     serverName: serverName,
-    servers: Object.values(servers).map(server => server.name)
+    servers: servers // <-- Tambahkan ini
   });
 });
 
@@ -108,23 +155,22 @@ app.all('/player/growid/login/validate', (req, res) => {
   const _token = req.body._token || '';
   const growId = req.body.growId || '';
   const password = req.body.password || '';
-  const serverName = req.body.server_name || 'MazdaPS'; // Get selected server name
   const serverPort = req.body.server_port || '17091'; // Get selected server port
 
   // Check if it's a registration request (empty growId and password)
   if (!growId && !password) {
-    // Create registration token with the selected server port
+    // Create registration token
     const token = Buffer.from(
-      `_token=${_token}&growId=&password=&server_name=${serverName}&server_port=${serverPort}`
+      `_token=${_token}&growId=&password=&server_port=${serverPort}`
     ).toString('base64');
 
     res.send(
       `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia","accountAge":2}`
     );
   } else {
-    // Create login token with the selected server port
+    // Create login token
     const token = Buffer.from(
-      `_token=${_token}&growId=${growId}&password=${password}&server_name=${serverName}&server_port=${serverPort}`
+      `_token=${_token}&growId=${growId}&password=${password}&server_port=${serverPort}`
     ).toString('base64');
 
     res.send(
@@ -161,10 +207,4 @@ app.get('/', function (req, res) {
 // Start server
 app.listen(5000, function () {
   console.log('Listening on port 5000');
-  
-  // Log available servers at startup
-  console.log('\x1b[36mAvailable servers:\x1b[0m');
-  for (const [hostname, config] of Object.entries(servers)) {
-    console.log(`- ${config.name} (${hostname}) on port ${config.port}`);
-  }
 });
