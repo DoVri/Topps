@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const rateLimiter = require('express-rate-limit');
 const compression = require('compression');
 const path = require('path');
+const fs = require('fs').promises;
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(
@@ -36,13 +37,40 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(rateLimiter({ windowMs: 15 * 60 * 1000, max: 100, headers: true }));
 
-// Server configuration - diubah menjadi array
-let servers = [
-    { name: 'MazdaPS', port: 17091 }
-];
+// Initialize servers from persistent storage
+let servers = [];
+
+// Load servers from file
+async function loadServers() {
+  try {
+    const data = await fs.readFile('servers.json', 'utf8');
+    servers = JSON.parse(data);
+    console.log(`[LOADED] ${servers.length} servers from persistent storage`);
+  } catch (error) {
+    // If file doesn't exist, initialize with default server
+    console.log(`[INIT] Creating new servers list`);
+    servers = [
+      { name: 'MazdaPS', port: 17091 }
+    ];
+    await saveServers();
+  }
+}
+
+// Save servers to file
+async function saveServers() {
+  try {
+    await fs.writeFile('servers.json', JSON.stringify(servers, null, 2));
+    console.log(`[SAVED] ${servers.length} servers to persistent storage`);
+  } catch (error) {
+    console.error(`[SAVE ERROR] Failed to save servers:`, error);
+  }
+}
+
+// Initialize servers on startup
+loadServers();
 
 // Route untuk menambah server
-app.get('/addlist', (req, res) => {
+app.get('/addlist', async (req, res) => {
     const { name, port } = req.query;
 
     if (!name || !port) {
@@ -64,6 +92,9 @@ app.get('/addlist', (req, res) => {
     // Tambahkan server baru ke array servers
     servers.push({ name: name, port: portNum });
 
+    // Simpan ke file
+    await saveServers();
+
     console.log(`[SERVER ADDED] Name: ${name}, Port: ${portNum}`);
 
     // Kembalikan response sukses
@@ -75,7 +106,7 @@ app.get('/addlist', (req, res) => {
 });
 
 // Route untuk menghapus server
-app.get('/deletelist', (req, res) => {
+app.get('/deletelist', async (req, res) => {
     const { name: nameToRemove, port: portToRemove } = req.query;
 
     if (!nameToRemove && !portToRemove) {
@@ -96,6 +127,10 @@ app.get('/deletelist', (req, res) => {
         const removedServer = servers[index];
         // Hapus server dari array servers
         servers.splice(index, 1);
+        
+        // Simpan ke file
+        await saveServers();
+        
         console.log(`[SERVER DELETED] Name: ${removedServer.name}, Port: ${removedServer.port}`);
         res.json({
             status: 'success',
@@ -205,6 +240,6 @@ app.get('/', function (req, res) {
 });
 
 // Start server
-app.listen(5000, function () {
-  console.log('Listening on port 5000');
+app.listen(process.env.PORT || 5000, function () {
+  console.log('Listening on port ' + (process.env.PORT || 5000));
 });
