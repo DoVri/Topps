@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Select Server - MazdaPS</title>
+    <title>Select Server - <%= serverName %></title>
     <link rel="icon" type="image/png"
         href="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/assets/images/growtopia.ico"
         sizes="16x16" />
@@ -65,15 +65,47 @@
             font-size: 16px;
             height: 50px;
             margin-bottom: 10px;
+            transition: background-color 0.3s ease;
         }
 
         .server-choice-btn:hover {
             background-color: #3399ff;
             cursor: pointer;
+            transform: translateY(-2px);
         }
 
         .section-title h2 {
             margin-bottom: 20px;
+        }
+
+        .server-list-container {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .server-list-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .server-list-container::-webkit-scrollbar-track {
+            background: #0d1117;
+        }
+
+        .server-list-container::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 4px;
+        }
+
+        .server-list-container::-webkit-scrollbar-thumb:hover {
+            background: #58a6ff;
+        }
+
+        .server-count {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #c9d1d9;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -99,12 +131,18 @@
                                                     </div>
                                                     <div class="row div-content-center">
                                                         <div class="col-md-12 col-sm-12" id="server-selection">
-                                                            <button class="btn btn-lg server-choice-btn w-100" data-server="17091" data-name="MazdaPS">
-                                                                MazdaPS
-                                                            </button>
-                                                            <button class="btn btn-lg server-choice-btn w-100" data-server="17092" data-name="BETA SERVER">
-                                                                BETA SERVER
-                                                            </button>
+                                                            <div class="server-count">
+                                                                Available Servers: <%= servers.length %>
+                                                            </div>
+                                                            <div class="server-list-container" id="server-list">
+                                                                <% servers.forEach(function(server) { %>
+                                                                    <button class="btn btn-lg server-choice-btn w-100" 
+                                                                        data-server="<%= server.port %>" 
+                                                                        data-name="<%= server.name %>">
+                                                                        <%= server.name %> (Port <%= server.port %>)
+                                                                    </button>
+                                                                <% }); %>
+                                                            </div>
                                                         </div>
 
                                                         <div class="col-md-12 col-sm-12" id="login-form" style="display: none;">
@@ -192,7 +230,7 @@
             const serverNameInput = document.getElementById('selected-server-name');
             const registerBtn = document.getElementById('register-btn');
 
-            let selectedServer = 'MazdaPS';
+            let selectedServer = '<%= serverName %>';
             let selectedPort = '17091';
 
             serverButtons.forEach(btn => {
