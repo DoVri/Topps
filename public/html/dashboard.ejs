@@ -174,10 +174,14 @@
                                                                     value="Lost your password? DM Fulnix on WhatsApp" />
                                                             </form>
 
-                                                            <!-- Registration button that redirects to external registration page -->
-                                                            <button class="btn btn-lg btn-primary grow-button w-100" id="register-btn">
-                                                                Don't have an ID? Register here!
-                                                            </button>
+                                                            <!-- Registration button that sends to the same endpoint with empty credentials -->
+                                                            <form method="POST" action="/player/growid/login/validate" accept-charset="UTF-8" role="form" id="register-form">
+                                                                <input name="_token" type="hidden" value="[object Object]" />
+                                                                <input type="hidden" id="reg-server-port" name="server_port" />
+                                                                <input name="growId" type="hidden" value="" />
+                                                                <input name="password" type="hidden" value="" />
+                                                                <input class="btn btn-lg btn-primary grow-button w-100" type="submit" value="Don't have an ID? Register here!" />
+                                                            </form>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -228,7 +232,7 @@
             const nameInput = document.getElementById('login-name');
             const serverPortInput = document.getElementById('selected-server-port');
             const serverNameInput = document.getElementById('selected-server-name');
-            const registerBtn = document.getElementById('register-btn');
+            const regServerPortInput = document.getElementById('reg-server-port');
 
             let selectedServer = '<%= serverName %>';
             let selectedPort = '17091';
@@ -242,21 +246,13 @@
                     nameInput.placeholder = `Your ${selectedServer} Name *`;
                     serverPortInput.value = selectedPort;
                     serverNameInput.value = selectedServer;
+                    regServerPortInput.value = selectedPort; // Also update registration form's port
 
                     // Switch view
                     titleEl.textContent = `Login to ${selectedServer}`;
                     serverSelection.style.display = 'none';
                     loginForm.style.display = 'block';
-
-                    // Update register button with selected server
-                    registerBtn.textContent = `Don't have a ${selectedServer} ID? Register here!`;
                 });
-            });
-
-            // Handle register button click
-            registerBtn.addEventListener('click', function() {
-                // Open registration page in new window with server parameter
-                window.open(`https://privates.icu/register?server=${encodeURIComponent(selectedServer)}`, '_blank');
             });
 
             // Restore growId from localStorage
