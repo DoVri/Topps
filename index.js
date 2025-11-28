@@ -27,7 +27,6 @@ app.use(function (req, res, next) {
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content-Type, Accept',
   );
-  // Perbaikan: Status kode belum ditentukan saat logging
   console.log(
     `[${new Date().toLocaleString()}] ${req.method} ${req.url} - ${res.statusCode || 'N/A'}`
   );
@@ -37,20 +36,38 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(rateLimiter({ windowMs: 15 * 60 * 1000, max: 100, headers: true }));
 
-// Initialize servers from persistent storage
-let servers = [];
+// Initialize servers with NewPS included by default
+let servers = [
+  { name: 'MazdaPS', port: 17091 },
+  { name: 'NewPS', port: 17092 }
+];
 
-// Load servers from file
+// Load servers from file (if exists)
 async function loadServers() {
   try {
     const data = await fs.readFile('servers.json', 'utf8');
-    servers = JSON.parse(data);
+    const loadedServers = JSON.parse(data);
+    
+    // Check if our default servers are already in the loaded list
+    const hasMazdaPS = loadedServers.some(s => s.name === 'MazdaPS');
+    const hasNewPS = loadedServers.some(s => s.name === 'NewPS');
+    
+    // If not, add them
+    if (!hasMazdaPS) {
+      loadedServers.unshift({ name: 'MazdaPS', port: 17091 });
+    }
+    if (!hasNewPS) {
+      loadedServers.push({ name: 'NewPS', port: 17092 });
+    }
+    
+    servers = loadedServers;
     console.log(`[LOADED] ${servers.length} servers from persistent storage`);
   } catch (error) {
-    // If file doesn't exist, initialize with default server
-    console.log(`[INIT] Creating new servers list`);
+    // If file doesn't exist, use our default servers with NewPS
+    console.log(`[INIT] Using default servers with NewPS`);
     servers = [
-      { name: 'MazdaPS', port: 17091 }
+      { name: 'MazdaPS', port: 17091 },
+      { name: 'NewPS', port: 17092 }
     ];
     await saveServers();
   }
@@ -115,11 +132,13 @@ app.get('/deletelist', async (req, res) => {
 
     // Temukan indeks server yang cocok dengan kriteria
     const index = servers.findIndex(server => {
+        // Don't allow deletion of default servers
+        if (server.name === 'MazdaPS' || server.name === 'NewPS') {
+            return false;
+        }
         // Cocokkan berdasarkan name dan/atau port
-        // Jika parameter tidak disediakan, abaikan pengecekan untuk parameter tersebut
         const matchesName = !nameToRemove || server.name === nameToRemove;
         const matchesPort = !portToRemove || server.port === parseInt(portToRemove, 10);
-
         return matchesName && matchesPort;
     });
 
@@ -138,11 +157,11 @@ app.get('/deletelist', async (req, res) => {
             servers: servers
         });
     } else {
-        // Server tidak ditemukan
-        console.log(`[DELETE FAILED] Server matching criteria not found.`);
+        // Server tidak ditemukan atau is default server
+        console.log(`[DELETE FAILED] Server matching criteria not found or is default server.`);
         res.status(404).json({
             status: 'error',
-            message: 'Server matching criteria not found.',
+            message: 'Server matching criteria not found or cannot delete default servers.',
             servers: servers
         });
     }
@@ -172,7 +191,6 @@ app.all('/player/login/dashboard', function (req, res) {
   }
 
   // Get server name from hostname
-  // Cari server berdasarkan hostname dalam array
   const hostname = req.hostname;
   const foundServer = servers.find(server => server.name.toLowerCase().includes(hostname.split('.')[0].toLowerCase()));
   const serverName = foundServer ? foundServer.name : hostname.split(".")[0] || "MazdaPS";
@@ -181,7 +199,7 @@ app.all('/player/login/dashboard', function (req, res) {
   res.render(__dirname + '/public/html/dashboard.ejs', {
      tData,
     serverName: serverName,
-    servers: servers // <-- Tambahkan ini
+    servers: servers
   });
 });
 
@@ -192,26 +210,13 @@ app.all('/player/growid/login/validate', (req, res) => {
   const password = req.body.password || '';
   const serverPort = req.body.server_port || '17091'; // Get selected server port
 
-  // Check if it's a registration request (empty growId and password)
-  if (!growId && !password) {
-    // Create registration token
-    const token = Buffer.from(
-      `_token=${_token}&growId=&password=&server_port=${serverPort}`
-    ).toString('base64');
+  // Create token with server port information in the correct format for LToken handler
+  const tokenData = `_token=${_token}&growId=${growId}&password=${password}&server_port=${serverPort}`;
+  const token = Buffer.from(tokenData).toString('base64');
 
-    res.send(
-      `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia","accountAge":2}`
-    );
-  } else {
-    // Create login token
-    const token = Buffer.from(
-      `_token=${_token}&growId=${growId}&password=${password}&server_port=${serverPort}`
-    ).toString('base64');
-
-    res.send(
-      `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia","accountAge":2}`
-    );
-  }
+  res.send(
+    `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia","accountAge":2}`
+  );
 });
 
 // Check token → validasi dan refresh token + accountAge: 2
@@ -242,4 +247,5 @@ app.get('/', function (req, res) {
 // Start server
 app.listen(process.env.PORT || 5000, function () {
   console.log('Listening on port ' + (process.env.PORT || 5000));
+  console.log('Default servers: MazdaPS (17091), NewPS (17092)');
 });
